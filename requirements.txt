@@ -1,0 +1,7 @@
+# Runtime dependencies (all free and open source). Ranges, not exact pins: after your first
+# successful install and test run, create requirements.lock.txt with:  pip freeze > requirements.lock.txt
+streamlit>=1.50,<2
+pandas>=2.2,<4
+sqlalchemy>=2.0.30,<3
+pydantic>=2.7,<3
+plotly>=5.24,<7

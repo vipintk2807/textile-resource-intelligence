@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local data and secrets (never publish)
+*.db
+*.sqlite
+*.sqlite3
+backups/
+logs/
+*.log
+.env
+.env.*
+secrets.toml
+.streamlit/secrets.toml
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Private planning material
+docs/private/
+*.planning.md
+requirements.lock.txt.bak

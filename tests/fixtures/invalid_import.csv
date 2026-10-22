@@ -1,0 +1,8 @@
+resource_category,quantity,unit,period_start,period_end,scope_key,reference,notes,record_type
+Electricity,1200,kWh,2025-01-01,2025-01-31,,BAD-001,valid row,
+Electricity,abc,kWh,2025-01-01,2025-01-31,,BAD-002,non-numeric quantity,
+Electricity,100,bushel,2025-01-01,2025-01-31,,BAD-003,unsupported unit,
+Electricity,100,kWh,31/01/2025,,,BAD-004,wrong date format,
+Plasma,100,kWh,2025-01-01,2025-01-31,,BAD-005,unknown category,
+Electricity,-50,kWh,2025-01-01,2025-01-31,,BAD-006,negative quantity,
+Electricity,100,kWh,2025-01-01,2025-01-31,,BAD-007,meter reading,meter_reading

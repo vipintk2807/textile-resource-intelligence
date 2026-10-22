@@ -1,0 +1,5 @@
+resource_category,quantity,unit,period_start,period_end,scope_key,reference,notes
+Electricity,1200,kWh,2025-01-01,2025-01-31,,SYN-R-001,Synthetic test record
+Water,3000,L,2025-01-01,2025-01-31,,SYN-R-002,Synthetic test record
+Electricity,900,kWh,2025-02-01,2025-02-28,,SYN-R-003,Synthetic test record
+Water,2400,L,2025-02-01,2025-02-28,,SYN-R-004,Synthetic test record

@@ -1,0 +1,18 @@
+# Theme follows the project theme specification (professional light interface).
+[theme]
+base = "light"
+primaryColor = "#287D78"
+backgroundColor = "#F4F6F8"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#344054"
+font = "sans serif"
+
+[server]
+# Listen on this computer only; do not expose the app to the network.
+address = "127.0.0.1"
+headless = false
+maxUploadSize = 5
+
+[browser]
+# No usage statistics are sent anywhere.
+gatherUsageStats = false

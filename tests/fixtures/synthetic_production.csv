@@ -1,0 +1,3 @@
+quantity,unit,period_start,period_end,scope_key,reference,notes
+600,kg,2025-01-01,2025-01-31,,SYN-P-001,Synthetic test record
+600,kg,2025-02-01,2025-02-28,,SYN-P-002,Synthetic test record

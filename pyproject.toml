@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "textile-resource-intelligence"
+version = "0.1.0"
+description = "Local-first resource-efficiency analysis for textile production: energy, water, chemicals, steam, waste and other resources related to production."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+authors = [{ name = "Vipin T K" }]
+dependencies = [
+    "streamlit>=1.50,<2",
+    "pandas>=2.2,<4",
+    "sqlalchemy>=2.0.30,<3",
+    "pydantic>=2.7,<3",
+    "plotly>=5.24,<7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0,<10", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src", "tests"]
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "UP"]
+ignore = ["E501"]  # line length is a formatting preference here, not an error
+
+[tool.ruff.lint.per-file-ignores]
+"app.py" = ["E402"]
+"tests/**" = ["E402", "E731", "B017"]
