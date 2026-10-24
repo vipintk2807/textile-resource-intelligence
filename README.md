@@ -1,241 +1,308 @@
 # Textile Resource Intelligence
 
-A local, free and open-source application for monitoring **energy, water, chemicals, steam, fuel, waste and other
-production resources** and relating them to **production output**, so that efficiency losses can be found with
-traceable, honest calculations.
+A local application that records how much electricity, water, steam, fuel, chemicals and waste a textile unit uses, and relates that use to production.
 
-It runs on your own computer (Windows-first), stores everything in one local SQLite file, needs no account,
-no cloud service and makes no network connections of its own.
+## Overview
 
-> **Project status:** version 0.1.0. See [Known limitations](#known-limitations). Calculation and service logic
-> is covered by automated tests; run `python -m pytest` after installing (see [Testing](#testing)).
+Textile Resource Intelligence helps a processing unit see how much resource it uses for each unit of production, for example kWh per kg of fabric. It keeps resource records and production records in one place, converts units, and calculates the ratio. When the data does not match, it says so and explains why instead of showing a misleading number.
 
-## What it does
+It runs on one computer. Data is stored in a single local file. It needs no account, cloud service or paid software.
 
-- **Resource records** — enter or import consumption (quantity + unit + period + optional scope/reference/notes).
-  The quantity and unit you enter are stored exactly as entered; nothing is converted or rounded in storage.
-- **Production records** — enter or import production (kg, tonne, g, metres or pieces).
-- **Resource intensity** — consumption per unit of production, e.g. **1,200 kWh ÷ 600 kg = 2 kWh/kg**, calculated
-  from totals after explicit unit conversion. Unavailable values are shown as *Unavailable*, never as zero.
-- **Baseline comparison** — compare a period with a baseline period you choose (absolute difference and percentage
-  change, with the reason shown when a comparison is not possible).
-- **Trends** — monthly or daily totals and intensity, with gaps (not zeros) for periods without valid data.
-- **Data-quality checks** — missing production, partial coverage, possible duplicates, overlapping intervals, zero
-  production, unknown units. Every calculated value lists the record IDs it came from.
-- **CSV import / export** — validated import with column mapping and preview; export of source records and results.
-- **Synthetic demonstration data** — optional, always clearly labelled, removable in one click.
+## Industrial Problem
 
-## Requirements
+Dyeing and processing units use a lot of electricity, water, steam, fuel and chemicals. The figures usually sit in different places: electricity bills, water meter readings, boiler logs, chemical stock sheets and production registers.
 
-- Windows 10/11 (Linux/macOS also work; commands below are for Windows CMD).
-- **Python 3.12** (free, <https://www.python.org/downloads/> — tick *Add python.exe to PATH*).
-- Internet access **once**, to download the free Python packages (Streamlit, pandas, SQLAlchemy, Pydantic, Plotly,
-  pytest, Ruff). No GPU, paid API or subscription is required.
+Total use is easy to read from these sources. A different question is harder to answer: is the unit using more or less resource for each kilogram it produces?
 
-## Windows setup (Command Prompt)
+Some common situations:
 
-1. **Extract the ZIP.** In File Explorer right-click the ZIP → *Extract All…*, or in CMD:
+- The electricity bill goes up. Did production go up, or did the machines become less efficient?
+- Water use per kg looks lower this month. But production records for half the month are missing.
+- One record is in MWh and another in kWh. One production figure is in kg and another in metres.
+- The same entry is typed twice, and nobody notices.
 
-   ```bat
-   cd %USERPROFILE%\Downloads
-   tar -xf textile-resource-intelligence.zip
-   cd textile-resource-intelligence
-   ```
+Without matching periods, matching units and clean records, comparisons between months can be wrong.
 
-2. **Create the environment and install** (run in the project folder):
+## Proposed Solution
 
-   ```bat
-   py -3.12 -m venv .venv
-   .venv\Scripts\python.exe -m pip install --upgrade pip
-   .venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-   ```
+The application keeps resource use and production on the same time basis and compares them only when they match.
 
-   (Shortcut: `scripts\setup_windows.bat` does the same.)
+- You enter or import resource records and production records.
+- The application converts units where a safe conversion exists.
+- It divides total resource use by total production for the same period.
+- It refuses to calculate when the data does not match, and shows the reason.
+- It lists the records behind every result, so each number can be checked.
 
-3. **Run the tests** (recommended on first install):
+The application shows what the records say. It does not decide why a value changed, and it does not estimate savings.
 
-   ```bat
-   .venv\Scripts\python.exe -m pytest
-   ```
+## Key Capabilities
 
-4. **Start the app:**
+These features are implemented in version 0.1.0.
 
-   ```bat
-   .venv\Scripts\python.exe -m streamlit run app.py
-   ```
+**Recording data**
 
-   (Shortcut: `scripts\run_app.bat`.) Your browser opens at <http://localhost:8501>. If Streamlit asks for an email
-   address in the terminal the first time, just press **Enter** to skip. Stop the app with **Ctrl+C**.
+- Resource records: quantity, unit, period, optional scope, reference and notes.
+- Production records in kg, g, tonne, metres or pieces.
+- Resource categories: Electricity, Water, Chemicals, Steam, Fuel, Waste and Other resources. You can add your own, for example one category per dye.
+- Quantities and units are saved exactly as entered. Nothing is converted or rounded in storage.
+- Edit and delete with confirmation. Results update automatically.
 
-5. **Optional — try it with synthetic data:** open **Settings → Demonstration data → Load synthetic demonstration
-   data**, or run `.venv\Scripts\python.exe scripts\seed_demo_data.py`.
+**Calculations**
 
-6. **Optional — freeze the versions you installed** (the dependency ranges in `requirements.txt` are bounded but not
-   exact pins): `.venv\Scripts\python.exe -m pip freeze > requirements.lock.txt`
+- Resource totals per category and scope for a day, month or date range.
+- Resource intensity: total resource divided by total production for the same period.
+- Overall intensity across several periods: total resource divided by total production. It is not an average of monthly ratios.
+- Comparison with a baseline period that you choose: difference and percentage change.
+- Monthly or daily trend charts. Periods without valid data appear as gaps, not zeros.
+- Unit conversion inside one type only: energy (kWh, MWh, MJ), volume (L, m³) and mass (kg, g, tonne).
 
-## Using the application
+**Data checks**
 
-| Page | Purpose |
-| --- | --- |
-| **Overview** | Totals, production, intensity and data-quality warnings for a month, day or custom range. |
-| **Resource Records** | Browse/filter, add, edit, delete and import resource records. |
-| **Production Records** | The same for production records. |
-| **Analysis** | One resource + scope in detail: results, baseline comparison, trend, and the records behind them. |
-| **Reports & Export** | CSV export of source records and calculated results. |
-| **Settings** | Resource categories, preferences, demonstration data, database path and backup, limitations. |
+- Shows when records cover only part of a period.
+- Shows when resource records and production records do not match.
+- Flags possible duplicates, overlapping records, zero production and unknown units.
+- Shows the record IDs behind each result.
 
-Typical workflow: record (or import) resource consumption and production for the same periods → open **Overview** →
-open **Analysis** to compare against a baseline → export results.
+**Import and export**
 
-### Import file format (CSV, UTF-8)
+- CSV import with column matching, a preview, and a clear error list.
+- CSV export of records and results.
+- Backup of the database from the Settings page.
 
-Download a header-only template from the import tab. Dates are `YYYY-MM-DD` only.
+**Demonstration data**
 
-| Column | Required | Notes |
-| --- | --- | --- |
-| `resource_category` | resource files | Must match a category in Settings (case-insensitive). Not used for production files. |
-| `quantity` | yes | Plain number, e.g. `1200.5`. No thousands separators. Zero is allowed; negatives are rejected. |
-| `unit` | yes | `kWh, MWh, MJ, L, m3 (or m³), kg, g, tonne` for resources; `kg, g, tonne, m, pcs` for production. |
-| `period_start` | yes | First day. |
-| `period_end` | no | Last day (inclusive). Blank = single date. |
-| `scope_key` | no | Optional identifier such as `dyeing-1`. Blank = overall. |
-| `reference` | no | Meter/batch/document id. Makes re-imports safe (see duplicate policy). |
-| `notes` | no | Free text. |
-| `record_type` | no | Only `interval_consumption` is supported; cumulative `meter_reading` rows are rejected. |
+- Optional sample data, always labelled as synthetic. It can be removed in one step.
 
-Extra columns are ignored and listed. Columns can be mapped by hand if your headers differ. Example files:
-`tests/fixtures/` (all synthetic).
+## How It Works
 
-## Key behaviours and design decisions
+1. **Input.** Enter records on the Resource Records and Production Records pages, or import a CSV file.
+2. **Process.** The application checks each record, converts units, adds up the records for the selected period, and compares resource totals with production totals.
+3. **Output.** The Overview and Analysis pages show totals, intensity, comparisons, trends and warnings. The Reports page exports them to CSV.
 
-- **Totals** add records only within one resource category, one scope key and one physical dimension (energy, volume,
-  mass), after converting units with exact factors. Different chemicals are different categories and are never added.
-- **Intensity = total resource ÷ total production** for the *same* period and scope. Production in kg, metres and
-  pieces are different *bases*; you choose one and they are never mixed.
-- **Overall intensity over several periods** = Σ consumption ÷ Σ production — never an average of period ratios.
-- **Records are never split.** A record that crosses the edge of the selected period is excluded and flagged; the
-  application does not pro-rate it.
-- **Coverage, not "completeness".** The app cannot know which records *should* exist, so it reports how many days of
-  the period are covered by records. If resource and production coverage differ, intensity is unavailable.
-- **Overlapping records.** Records with identical intervals are treated as separate events (e.g. two meters). Records
-  with different but overlapping intervals could double count, so the total becomes unavailable until corrected.
-- **Scope keys** are identifiers *you* define (`a-z`, `0-9`, `-`, `_`). Resource and production records match only
-  when their keys are identical (blank matches blank). The application never guesses relationships between scopes.
-  If your process has stages, give each stage its own scope key so material is not counted twice.
-- **Duplicate policy.** *Reliable duplicate*: same reference + category + scope + period → manual entry is rejected,
-  import skips the row and reports it. *Possible duplicate*: same scope/period/quantity/unit but no reference to
-  distinguish → kept, flagged for review. Nothing is ever deleted automatically.
-- **Import is all-or-nothing:** if any row has an error, nothing is saved. The preview and the commit use the same
-  validation. Row numbers count data rows after the header (first data row = row 1).
-- **Baselines** are reference periods you pick; they are not industry benchmarks. A zero baseline keeps the absolute
-  difference but the percentage is shown as unavailable. A difference is an observation, not a diagnosis.
-- **Decimals:** quantities are exact (`Decimal`, stored as text). Rounding happens only for display (setting:
-  decimal places) and calculations use 50-digit precision.
-- **Technical input limits:** quantities below 1e18 with at most 12 decimal places (so values remain exactly storable).
-- **Demonstration data** is marked `source_type = demo`, labelled in tables, banners and exports, and is never loaded
-  automatically.
+### Example
 
-## Data location, backups and privacy
+These numbers are made-up test values, not real measurements.
 
-- Database: `%LOCALAPPDATA%\TextileResourceIntelligence\textile_resource_intelligence.db`
-  (override with the `TRI_DATABASE_PATH` environment variable; `TRI_DATA_DIR` moves the whole data folder).
-- Logs: `<data folder>\logs\app.log` (rotating; record contents are not logged). Backups: `<data folder>\backups\`.
-- **Backup:** Settings → Database and backup → *Create a backup now* (uses SQLite's online-backup API and verifies the
-  copy). **Restore:** close the app and replace the database file with a backup copy.
-- The app listens on `127.0.0.1` only, sends no usage statistics (`.streamlit/config.toml`) and has no login — protect
-  the computer/user account as you would any file containing business data.
-- Optional environment variables: `TRI_LOG_LEVEL`, `TRI_MAX_IMPORT_MB` (default 5), `TRI_MAX_IMPORT_ROWS`
-  (default 50,000), `TRI_PAGE_SIZE`.
+| Month | Electricity | Production | Intensity |
+| --- | --- | --- | --- |
+| January | 1,200 kWh | 600 kg | 2.0 kWh/kg |
+| February | 900 kWh | 600 kg | 1.5 kWh/kg |
 
-## Project structure
+For February compared with January, intensity is 25% lower. Over both months the overall figure is 2,100 kWh ÷ 1,200 kg = 1.75 kWh/kg.
 
-```text
-app.py                      Streamlit entry point and page navigation
-pages/                      The six pages (UI only: collect input, display results)
-src/textile_resource_intelligence/
-  domain/                   Pure logic: units, validation, calculations, comparisons, data quality (no UI/DB imports)
-  services/                 Use cases: records, import, analysis, export, categories, preferences, demo data
-  models.py, database.py,   SQLite persistence (SQLAlchemy 2.0), schema versioning, unit of work
-  repositories.py
-  config.py                 Pydantic-validated settings (TRI_* environment variables)
-  paths.py, backup.py       Data folder location and safe backups (standard library)
-  ui/                       Formatting, tables (pure) and Streamlit/Plotly components
-tests/                      unit/, integration/, fixtures/ (synthetic), support/ (in-memory repository)
-scripts/                    Windows helper scripts and the demo-data loader
+### Rules the application follows
+
+- Different resources are never added together. Each chemical should be its own category.
+- Production in kg, metres and pieces are never added together. You choose one as the basis.
+- A record that crosses the edge of the selected period is not split. It is left out and flagged.
+- Records that overlap with different dates could be counted twice, so the total is shown as unavailable until they are corrected.
+- If resource records and production records cover different days of the period, intensity is unavailable.
+- Missing data is never shown as zero. Zero production gives no intensity.
+- Scope keys are names you choose, such as `dyeing-1`. Resource and production records are compared only when their scope keys are identical. Use a different scope key for each process stage so that material is not counted twice.
+- Duplicates: the same reference, category, scope and period is rejected on manual entry and skipped on import. Records without a reference that look the same are kept and flagged. Nothing is deleted automatically.
+- Import is all or nothing. If any row has an error, no row is saved.
+
+## System Architecture
+
+The user works in a web browser. Streamlit serves the pages from the same computer. The pages call services. The services use a set of rules for units, validation and calculations. Records are stored in one SQLite file.
+
+```mermaid
+flowchart LR
+    User[User in browser] --> Pages[Streamlit pages]
+    Pages --> Services[Services]
+    Services --> Rules[Domain rules: units, validation, calculations]
+    Services --> Repo[Repository]
+    Repo --> DB[(SQLite file)]
 ```
 
-Calculation rules live **only** in `domain/`; the interface never recalculates them. The service tests run against
-both an in-memory repository and a real temporary SQLite database.
+- **Domain rules** (`domain/`) hold all calculation logic. They have no screen or database code, so they are easy to test.
+- **Services** (`services/`) handle records, import, analysis, export and settings.
+- **Pages** (`pages/`) only collect input and show results. They do not calculate.
+- **Storage** is a local SQLite database. The database schema has a version number. The application refuses to open a database created by a newer version.
 
-## Testing
+## Technology Stack
+
+| Technology | Purpose |
+| --- | --- |
+| Python 3.12 | Main language |
+| Streamlit | Web interface, run locally |
+| SQLite with SQLAlchemy 2 | Local storage |
+| pandas | Tables and CSV export |
+| Plotly | Charts |
+| Pydantic | Validation of application settings |
+| pytest, Ruff | Testing and code checks (development only) |
+
+Exact quantities use Python's `Decimal` type, so values such as 0.1 are stored without rounding error. All tools are free and open source.
+
+## Installation & Setup
+
+### Prerequisites
+
+- Windows 10 or 11. Linux and macOS should also work, but the commands below are for Windows Command Prompt.
+- Python 3.12. Download it from python.org and tick **Add python.exe to PATH**.
+- Internet access once, to download the packages.
+
+### Install
+
+Open Command Prompt in the project folder and run:
 
 ```bat
-rem all tests
+py -3.12 -m venv .venv
+.venv\Scripts\python.exe -m pip install --upgrade pip
+.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+```
+
+`scripts\setup_windows.bat` runs the same steps.
+
+The dependency list in `requirements.txt` uses version ranges, not exact versions. After a successful install and test run, you can save your exact versions with `.venv\Scripts\python.exe -m pip freeze > requirements.lock.txt`.
+
+### Run
+
+```bat
+.venv\Scripts\python.exe -m streamlit run app.py
+```
+
+`scripts\run_app.bat` does the same. The browser opens at `http://localhost:8501`. If Streamlit asks for an email address in the terminal, press Enter. Stop the application with Ctrl+C.
+
+The application listens on this computer only and sends no usage statistics. These settings are in `.streamlit/config.toml`.
+
+### Test
+
+```bat
 .venv\Scripts\python.exe -m pytest
-rem code-style / static checks
 .venv\Scripts\python.exe -m ruff check .
 ```
 
-Tests use only synthetic data and temporary databases — never your real database. Streamlit page smoke tests
-(`tests/test_streamlit_app.py`) use Streamlit's `AppTest` harness.
+Tests use synthetic data and temporary databases. They never touch your real database.
 
-## Troubleshooting
+### Configuration
+
+No configuration is needed to start. These optional environment variables are available:
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `TRI_DATABASE_PATH` | Full path of the database file | `%LOCALAPPDATA%\TextileResourceIntelligence\textile_resource_intelligence.db` |
+| `TRI_DATA_DIR` | Folder for the database, logs and backups | `%LOCALAPPDATA%\TextileResourceIntelligence` |
+| `TRI_LOG_LEVEL` | `DEBUG`, `INFO`, `WARNING` or `ERROR` | `INFO` |
+| `TRI_MAX_IMPORT_MB` | Largest CSV file accepted | 5 |
+| `TRI_MAX_IMPORT_ROWS` | Most rows accepted in one CSV file | 50,000 |
+| `TRI_PAGE_SIZE` | Rows per page in record tables | 50 |
+
+## Usage
+
+### First look with sample data
+
+1. Start the application.
+2. Open **Settings**, then **Demonstration data**, then load the synthetic data.
+3. Open **Overview** and choose January 2025. The Resource intensity tab shows Electricity at 2.00 kWh/kg.
+4. Open **Analysis**, select Electricity, turn on **Compare with a baseline period**, and compare February with January.
+5. When finished, remove the sample data in the same Settings tab.
+
+### Using your own data
+
+1. In **Settings**, check the resource categories. Add any you need.
+2. Enter resource records and production records, or import them from CSV.
+3. Use the same scope key on resource and production records that belong together. Leave it blank for the whole unit.
+4. Open **Overview** and read the warnings.
+5. Use **Analysis** for baselines and trends, and **Reports & Export** for CSV files.
+
+### CSV import format
+
+Files must be UTF-8 CSV. In Excel, use Save As, then CSV UTF-8. Download a header-only template from the import tab. Dates must be written `YYYY-MM-DD`.
+
+| Column | Required | Notes |
+| --- | --- | --- |
+| `resource_category` | Resource files | Must match a category in Settings. |
+| `quantity` | Yes | A plain number such as `1200.5`. No thousands separators. Zero is allowed. Negative values are rejected. |
+| `unit` | Yes | Resources: kWh, MWh, MJ, L, m3 (or m³), kg, g, tonne. Production: kg, g, tonne, m, pcs. |
+| `period_start` | Yes | First day. |
+| `period_end` | No | Last day, included. Blank means a single date. |
+| `scope_key` | No | Letters, digits, `-` and `_`. Blank means overall. |
+| `reference` | No | Meter, batch or document number. Makes re-imports safe from duplicates. |
+| `notes` | No | Free text. |
+| `record_type` | No | Only `interval_consumption` is accepted. |
+
+Extra columns are ignored. Example files are in `tests/fixtures/`. They are synthetic.
+
+### Data location and backup
+
+- The database, logs and backups are stored in `%LOCALAPPDATA%\TextileResourceIntelligence`, unless you change it.
+- Create a verified backup from **Settings**, then **Database and backup**.
+- To restore, close the application and replace the database file with a backup copy.
+- The application has no login. Protect the computer and user account as you would any business file.
+
+### Troubleshooting
 
 | Problem | What to do |
 | --- | --- |
-| `py` is not recognised | Install Python 3.12 from python.org and tick *Add python.exe to PATH*, then open a new CMD window. |
-| `py -3.12` says no suitable Python | Install Python 3.12 (check installed versions with `py -0p`). |
-| `pip install` fails / times out | Check your internet connection or proxy; run the install command again. |
-| Browser does not open | Open <http://localhost:8501> manually. If the port is busy: `streamlit run app.py --server.port 8502`. |
-| "created by a newer version of the application" | The database came from a newer release. Update the app; do not edit the file. |
-| "did not create" database error | `TRI_DATABASE_PATH` points at an unrelated SQLite file. Choose another path. |
-| CSV rejected as "not valid UTF-8" | In Excel: *Save As → CSV UTF-8 (Comma delimited)*. |
-| CSV rejected "Row N has X values…" | A row has too many/few commas; values that contain commas must be in quotes. |
-| Dates rejected | Use `YYYY-MM-DD` (e.g. `2025-01-31`), not `31/01/2025`. |
-| Intensity shows *Unavailable* | Read the reason shown: missing/zero production, partial coverage, differing scope, overlapping records. |
-| Reset everything | Close the app and delete the database file (after making a backup). |
+| `py` is not recognised | Install Python 3.12 and tick **Add python.exe to PATH**. Open a new Command Prompt. |
+| Package installation fails | Check the internet connection and run the install command again. |
+| Browser does not open | Go to `http://localhost:8501`. If the port is busy, add `--server.port 8502` to the run command. |
+| CSV rejected as not UTF-8 | Save the file as CSV UTF-8 from Excel. |
+| CSV rejected for wrong number of values | A row has too many or too few commas. Put values that contain commas in quotes. |
+| Dates rejected | Write dates as `2025-01-31`, not `31/01/2025`. |
+| Intensity shows Unavailable | Read the reason on screen. Common causes are missing or zero production, partly covered periods, different scope keys and overlapping records. |
+| Database created by a newer version | Update the application. Do not edit the file. |
 
-## Maintenance
+## Project Structure
 
-- **Dependencies:** all free/open source. Update with `pip install --upgrade -r requirements.txt`, then run the tests.
-- **Adding a unit:** add one entry to `_UNIT_LIST` in `domain/units.py` (with its exact factor) and a test.
-- **Schema changes:** bump `SCHEMA_VERSION` and add an upgrade step to `MIGRATIONS` in `database.py`; the app refuses
-  databases from newer versions instead of modifying them.
-
-## Known limitations
-
-- Only **interval consumption** is supported. Cumulative meter readings are rejected rather than summed incorrectly.
-- Conversions that need extra data (volume ↔ energy, mass ↔ energy, mass ↔ volume) are not provided; they are refused
-  with an explanation.
-- No cost, carbon, benchmarking, forecasting, cause diagnosis or savings estimation.
-- Single user, no authentication, no cloud sync; rejected import rows are shown in the import screen but not stored.
-- Results are only as good as the records entered; synthetic demo values are not benchmarks.
-
-## Publishing to GitHub (multiple-account safe)
-
-Create an **empty** repository named `textile-resource-intelligence` under the account `vipintk2807` on GitHub (no
-README/licence), then in CMD from the project folder:
-
-```bat
-git init -b main
-git config user.name "Vipin T K"
-git config user.email "YOUR-ID+vipintk2807@users.noreply.github.com"
-git config --local --list
-ssh -T git@github-vipintk2807
-git remote add origin git@github-vipintk2807:vipintk2807/textile-resource-intelligence.git
-git remote -v
-git add .
-git status
-git commit -m "Initial implementation of Textile Resource Intelligence"
-git branch --show-current
-git push -u origin main
+```text
+app.py                      Application entry point and navigation
+pages/                      The six pages: Overview, Resource Records, Production Records,
+                            Analysis, Reports, Settings
+src/textile_resource_intelligence/
+    domain/                 Units, validation, calculations, comparisons, data checks
+    services/               Records, import, export, analysis, categories, settings, demo data
+    ui/                     Formatting, tables, charts and shared screen components
+    models.py, database.py, repositories.py    SQLite storage
+    config.py, paths.py, backup.py             Settings, data folder, backups
+tests/                      unit/, integration/ and fixtures/ (synthetic data)
+scripts/                    Windows helper scripts and the sample-data loader
 ```
 
-Before pushing, check: the `user.name`/`user.email` shown are the *repository-local* ones; `ssh -T` greets
-`vipintk2807`; `git remote -v` shows `github-vipintk2807:vipintk2807/...`; `git status` lists no `.db`, `.env`, log or
-private planning files (they are in `.gitignore`). Use the no-reply email shown in GitHub → Settings → Emails.
-Never put tokens or passwords in files or URLs.
+To change unit rules, edit `domain/units.py`. To change calculation rules, edit `domain/calculations.py`.
+
+## Current Status
+
+Version 0.1.0. This is an early release. It has not been used with real factory data.
+
+| Area | Status |
+| --- | --- |
+| Records, categories, import, export, backup | Implemented |
+| Totals, intensity, baseline comparison, trends | Implemented |
+| Data checks and warnings | Implemented |
+| Automated tests | Included. They cover calculations, units, validation, import, export and storage. Run them after installation to confirm they pass on your computer. |
+| Interface smoke tests | Included in `tests/test_streamlit_app.py`. Run them with the other tests. |
+| Real factory validation | Not done |
+| Multiple users, login, cloud features | Not included |
+
+Limits of this version:
+
+- Only interval consumption is supported. Cumulative meter readings are rejected, so they are not summed by mistake.
+- Conversions that need extra data are refused with an explanation. These include litres to kWh, kg of steam to energy, and kg to litres.
+- No cost, carbon, benchmark or savings estimates.
+- Rejected import rows are shown on screen but not saved.
+- The application does not diagnose causes. A change between periods is an observation only.
+
+## Roadmap
+
+These are possible improvements. They are not implemented and have no dates.
+
+- Support for cumulative meter readings.
+- Conversions that use values entered by the user, such as density or fuel energy content.
+- A saved history of rejected import rows.
+- Support for process stages, to help avoid counting material twice.
+- A locked list of exact dependency versions.
+
+## Contributing
+
+1. Fork the repository and create a branch.
+2. Install the project as described above, including `requirements-dev.txt`.
+3. Make your change. Keep calculation rules in `domain/` and keep pages free of calculations.
+4. Add or update tests. Use synthetic data only. Never commit real factory data.
+5. Run `python -m pytest` and `python -m ruff check .` from the project's virtual environment.
+6. Open a pull request. Describe what changed and why.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
